@@ -19,6 +19,7 @@ class PyProx():
 		self.dst_port = args.dst_port
 		self.last_time = time.time()
 
+
 		self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
@@ -69,7 +70,7 @@ class PyProx():
 				client.send(remote_buffer)
 				log("i", "Sent to client")
 
-			if not len(local_buffer) and not len(remote_buffer) and (time.time() - self.last_time) > 10:
+			if not len(local_buffer) and not len(remote_buffer) and (time.time() - self.last_time) > 40:
 				self.close_conns(client)
 				return
 
@@ -104,21 +105,23 @@ def main():
 	return
 
 
-def hexdump(src, length=8):
+def hexdump(src, length=16):
 	result = []
-	digits = 4
+	digits = 2
 	for i in range(0, len(src), length):
 		s = bytes(src[i:i+length])
-		hexa = ' '.join(["%0*X" % (digits, x) for x in s])
+		hexa = ' '.join(["%0*x" % (digits, x) for x in s])
 		if len(hexa) < length*digits+(length-1):
 			hexa= hexa + (" " * (length*digits+(length-1) - len(hexa)))
 		text = ''.join(["%s" % chr(x) if 0x20 <= x < 0x7F else '.' for x in s])
-		result.append("%04X> %-*s | %s" % (i, 5, hexa, text))
+		result.append("%08x  %-*s  |%s|" % (i, 9, hexa, text))
 	print('\n'.join(result))
 
 def parse_params():
 	parser = argparse.ArgumentParser()
 	parser.add_argument('-v','--verbose', help="Verbose mode", action="store_true")
+	parser.add_argument('-6','--ipv6', help="Use ipv6 for remote host", action="store_true")
+	parser.add_argument('-u','--udp', help="Use UDP proto (Not working yet)", action="store_true")
 	parser.add_argument('src_host', help="src IP to bind", type=str)
 	parser.add_argument('src_port', help="src PORT to bind", type=int)
 	parser.add_argument('dst_host', help="dst IP to listen", type=str)
