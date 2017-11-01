@@ -43,8 +43,8 @@ class PyProx():
 		log("a", "Trying to get data from remote...")
 		remote_buffer = self.recv_from(self.remote)
 		if len(remote_buffer):
-			hexdump(remote_buffer)
 			log("i", "Sending %d bytes to client" % len(remote_buffer))
+			hexdump("<", remote_buffer)
 			client.send(remote_buffer)
 		else:
 			log("a", "No data from remote, listening client now...")
@@ -52,8 +52,8 @@ class PyProx():
 			local_buffer = self.recv_from(client)
 			
 			if len(local_buffer):
-				hexdump(local_buffer)
 				log("i", "Received %d bytes from client" % len(local_buffer))
+				hexdump(">", local_buffer)
 				try:
 					self.remote.send(local_buffer)
 				except BrokenPipeError:
@@ -65,8 +65,8 @@ class PyProx():
 				log("i", "Sent to remote")
 			remote_buffer = self.recv_from(self.remote)
 			if len(remote_buffer):
-				hexdump(remote_buffer)
 				log("i", "Received %d bytes from remote" % len(remote_buffer))
+				hexdump("<", remote_buffer)
 				client.send(remote_buffer)
 				log("i", "Sent to client")
 
@@ -105,7 +105,7 @@ def main():
 	return
 
 
-def hexdump(src, length=16):
+def hexdump(origin, src, length=16):
 	result = []
 	digits = 2
 	for i in range(0, len(src), length):
@@ -114,7 +114,7 @@ def hexdump(src, length=16):
 		if len(hexa) < length*digits+(length-1):
 			hexa= hexa + (" " * (length*digits+(length-1) - len(hexa)))
 		text = ''.join(["%s" % chr(x) if 0x20 <= x < 0x7F else '.' for x in s])
-		result.append("%08x  %-*s  |%s|" % (i, 9, hexa, text))
+		result.append("%s %08x  %-*s  |%s|" % (origin, i, 9, hexa, text))
 	print('\n'.join(result))
 
 def parse_params():
